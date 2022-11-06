@@ -4,14 +4,15 @@ const todos = require('../models/Todo');
 
 // endpoint to delete a todo
 router.delete('/:id', async (req, res) => {
-    const {title} = req.body;
 
-    // create a new todo object
-    const newTodo = {};
-    if(title) newTodo.title = title;
+    try {
+        let todo = await todos.findByIdAndDelete(req.params.id);
+        res.json({ "Success": "Note has been deleted" });
 
-    let todo = await todos.findByIdAndUpdate(req.params.id, {$set: newTodo}, {new: true});
-    res.json(todo);
+    } catch (error) {
+        res.status(500).send('Internal Server Error');
+    }
+
 })
 
 module.exports = router;

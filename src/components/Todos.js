@@ -11,29 +11,44 @@ const Todos = () => {
     // eslint-disable-next-line
     getTodos();
   }, [])
-  const [todo, setTodo] = useState({ title: "" });
-  const [updatedTodo, setUpdatedTodo] = useState({ updatedtitle: "" });
 
-  const ref = useRef(null);
-  const refClose = useRef(null);
+  const [newTitle, setNewTitle] = useState("");
+  const [todo, setTodo] = useState({ title: "" });
+  const [updatedTodo, setUpdatedTodo] = useState({});
+
+  const refOpen = useRef(0);
+  const refClose = useRef(0);
+  const refUpdateInput = useRef(0);
+  const refInput = useRef(0);
+  
   const handleClick = (e) => {
     e.preventDefault();
     console.log(todo);
     addTodo(todo);
+    setTodo({title:""})
   }
 
   const handleSaveChanges = () => {
     refClose.current.click();
   }
 
-  const handleUpdate = (todo) => {
-    console.log(todo);
-    ref.current.click();
-    editTodo(todo);
-  }
-
+  
   const handleOnChange = (e) => {
     setTodo({ title: e.target.value });
+  }
+  const handleUpdate = (todo) => {
+    setUpdatedTodo(todo);
+    console.log(todo);
+    refOpen.current.click();
+    document.getElementById('updatedTitle').focus();
+  }
+  const handleOnUpdateChange = (e) => {
+    setNewTitle(e.target.value);
+  }
+  const handleSave = () => {
+    editTodo(updatedTodo._id, newTitle);
+    refClose.current.click();
+    setNewTitle("");
   }
 
   const getTodos = async () => {
@@ -62,7 +77,6 @@ const Todos = () => {
 
     const newTodo = await response.json();
     setTodos(todos.concat(newTodo));
-    console.log(todos);
   }
 
   const deleteTodo = async (todo) => {
@@ -81,9 +95,9 @@ const Todos = () => {
     setTodos(todos.filter((todo) => (todo._id !== toDelete._id)));
   }
 
-  const editTodo = async (todo, title) => {
+  const editTodo = async (id, title) => {
     // api call for updating todo
-    const response = await fetch(`${host}/api/updatetodo/${todo._id}`, {
+    const response = await fetch(`${host}/api/updatetodo/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json'
@@ -92,49 +106,40 @@ const Todos = () => {
     })
     const json = response.json();
 
-    // let newTodos = JSON.parse(json.stringify(todos))
-    for (let index = 0; index < todos.length; index++) {
-      const element = todos[index];
-      if (element._id === todo._id) {
-        todos[index].title = title;
+    let newTodos = JSON.parse(JSON.stringify(todos));
+    for (let index = 0; index < newTodos.length; index++) {
+      const element = newTodos[index];
+      if (element._id === id) {
+        newTodos[index].title = title;
         break;
       }
     }
-    setTodos(todos);
+    setTodos(newTodos);
   }
 
 
   return (
     <>
       {/* <!-- Button trigger modal --> */}
-      <button ref={ref} type="button" className="btn btn-primary d-none" data-toggle="modal" data-target="#exampleModal">
+      <button ref={refOpen} type="button" className="btn btn-primary d-none" data-bs-toggle="modal" data-bs-target="#exampleModalCenter">
         Launch demo modal
       </button>
 
       {/* <!-- Modal --> */}
-      <div className="modal fade" id="exampleModal" tabIndex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div className="modal-dialog" role="document">
+      <div className="modal fade" id="exampleModalCenter" tabIndex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+        <div className="modal-dialog modal-dialog-centered" role="document">
           <div className="modal-content">
             <div className="modal-header">
-              <h5 className="modal-title" id="exampleModalLabel">Modal title</h5>
-              <button type="button" className="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
+              <h5 className="modal-title" id="exampleModalLongTitle">{updatedTodo.title}</h5>
             </div>
             <div className="modal-body">
-            <form>
-                <div className="form-group row">
-                  <label htmlFor="updatedTitle" className="col-sm-2 col-form-label">Task</label>
-                  <div className="col-sm-10 d-flex">
-                    <input type="text" className="form-control" id='updatedTitle' name='updatedTitle' value={updatedTodo.title} onChange={handleOnChange} />
-                    <button className="btn btn-primary mx-1" onClick={handleClick}>Add</button>
-                  </div>
-                </div>
-              </form>
+              <b>New title</b> 
+              <hr />
+              <input autoFocus={true} type="text" className="form-control" id='updatedTitle' name='updatedTitle' value={newTitle} onChange={handleOnUpdateChange} />
             </div>
             <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" data-dismiss="modal">Close</button>
-              <button type="button" className="btn btn-primary">Save changes</button>
+              <button ref={refClose} type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+              <button type="button" className="btn btn-primary" onClick={handleSave}>Save changes</button>
             </div>
           </div>
         </div>

@@ -10,7 +10,12 @@ const Todos = () => {
   useEffect(() => {
     // eslint-disable-next-line
     getTodos();
+    document.title = `Top todo's`;
   }, [])
+  
+  // setInterval(() => {
+  //   document.title = `You have ${todos.length} tasks pending!` ;
+  // }, 8000);
 
   const [newTitle, setNewTitle] = useState("");
   const [todo, setTodo] = useState({ title: "" });
